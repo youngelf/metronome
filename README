@@ -1,0 +1,21 @@
+A basic metronome program
+
+This is a simple metronome program for Linux.
+
+It supports setting a tempo and a time signature. There's a simple
+audio out using SDL, and an ability to play/pause the music by sending
+DBus messages.  There is a simple curses interface.
+
+Since audio is over sdl, pairing a bluetooth headset works trivially.
+
+This is a simple yet very useful program.
+
+
+
+
+I grew tired of Android-based metronome programs that weren't
+convenient when viewing sheet music, as you have to switch between
+apps, and they usually push ads in your face.
+
+My desktop has a larger screen than any tablet I own, so this is more
+convenient when practicing.
