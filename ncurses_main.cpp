@@ -99,9 +99,10 @@ int main(int argc, char *argv[]) {
             mvprintw(9, 0, "  [+ = > .] Increase Tempo (+5)");
             mvprintw(10, 0, "  [- _ < ,] Decrease Tempo (-5)");
             mvprintw(12, 0, "D-Bus signal: org.example.Metronome.Toggle");
-            
+
             // Update status
-            mvprintw(4, 0, "Status:         %s", is_running ? "Running" : "Paused");
+            mvprintw(4, 0, "Status:         %s",
+		     is_running ? "Running" : "Paused ");
 
             // Refresh the screen
             refresh();
