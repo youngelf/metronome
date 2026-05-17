@@ -15,12 +15,12 @@ void metronome_thread_func() {
     metronome.start();
 }
 
-void handle_dbus_message() {
+bool handle_dbus_message() {
     dbus_connection_read_write(dbus_conn, 0);
     DBusMessage* msg = dbus_connection_pop_message(dbus_conn);
 
     if (msg == NULL) {
-        return;
+        return false;
     }
 
     if (dbus_message_is_signal(msg, "org.example.Metronome", "Toggle")) {
@@ -31,8 +31,11 @@ void handle_dbus_message() {
             metronome.start();
             is_running = true;
         }
+        dbus_message_unref(msg);
+        return true;
     }
     dbus_message_unref(msg);
+    return false;
 }
 
 int main(int argc, char *argv[]) {
@@ -76,28 +79,34 @@ int main(int argc, char *argv[]) {
     nodelay(stdscr, TRUE); // Make getch non-blocking
 
     bool quit = false;
+    bool dirty = true; // Flag to indicate that the screen needs to be redrawn
     while (!quit) {
         if (dbus_conn != NULL) {
-            handle_dbus_message();
+            if (handle_dbus_message()){
+                dirty = true;
+            }
         }
 
-        // Clear the screen
-        clear();
+        if (dirty)
+        {
+            // Print the UI
+            mvprintw(0, 0, "--- Metronome TUI ---");
+            mvprintw(2, 0, "Tempo:          %d BPM", tempo);
+            mvprintw(3, 0, "Time Signature: %d/%d", beats_per_measure, note_value);
+            mvprintw(6, 0, "--- Controls ---");
+            mvprintw(7, 0, "  [Space]   Play/Pause");
+            mvprintw(8, 0, "  [q]       Quit");
+            mvprintw(9, 0, "  [+ = > .] Increase Tempo (+5)");
+            mvprintw(10, 0, "  [- _ < ,] Decrease Tempo (-5)");
+            mvprintw(12, 0, "D-Bus signal: org.example.Metronome.Toggle");
+            
+            // Update status
+            mvprintw(4, 0, "Status:         %s", is_running ? "Running" : "Paused");
 
-        // Print the UI
-        mvprintw(0, 0, "--- Metronome TUI ---");
-        mvprintw(2, 0, "Tempo:          %d BPM", tempo);
-        mvprintw(3, 0, "Time Signature: %d/%d", beats_per_measure, note_value);
-        mvprintw(4, 0, "Status:         %s", is_running ? "Running" : "Paused");
-        mvprintw(6, 0, "--- Controls ---");
-        mvprintw(7, 0, "  [Space]   Play/Pause");
-        mvprintw(8, 0, "  [q]       Quit");
-        mvprintw(9, 0, "  [+ = > .] Increase Tempo (+5)");
-        mvprintw(10, 0, "  [- _ < ,] Decrease Tempo (-5)");
-        mvprintw(12, 0, "D-Bus signal: org.example.Metronome.Toggle");
-
-        // Refresh the screen
-        refresh();
+            // Refresh the screen
+            refresh();
+            dirty = false;
+        }
 
         // Handle input
         int ch = getch();
@@ -116,14 +125,18 @@ int main(int argc, char *argv[]) {
                     metronome.start();
                     is_running = true;
                 }
+                dirty = true;
                 break;
+            case KEY_UP:
             case '+':
             case '=':
             case '>':
             case '.':
                 tempo += 5;
                 metronome.set_tempo(tempo);
+                dirty = true;
                 break;
+            case KEY_DOWN:
             case ',':
             case '<':
             case '-':
@@ -132,6 +145,7 @@ int main(int argc, char *argv[]) {
                     tempo -= 5;
                     metronome.set_tempo(tempo);
                 }
+                dirty = true;
                 break;
         }
 
