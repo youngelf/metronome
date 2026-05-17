@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 
     // Clean up
     if (dbus_conn != NULL) {
-        dbus_connection_close(dbus_conn);
+        dbus_connection_unref(dbus_conn);
     }
     endwin(); // End curses mode
     audio_cleanup();
